@@ -56,7 +56,9 @@ def test_inference():
     input_dict = {
         'image': raw_image,
         'text': full_prompt,
-        'tokenizer': tokenizer
+        'past_text' : '',
+        'tokenizer': tokenizer,
+        'mask_prompts': None,
     }
 
     print("Running predict_forward...")
