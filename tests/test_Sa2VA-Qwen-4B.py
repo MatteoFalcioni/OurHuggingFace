@@ -2,14 +2,14 @@ import os
 import torch
 import numpy as np
 from PIL import Image, ImageOps
-from transformers import AutoModel, AutoTokenizer
+from transformers import AutoModel, AutoTokenizer, AutoProcessor
 
 # --- CONFIG ---
 IMAGE_PATH = "./test_images/img1.jpeg" 
-OUTPUT_DIR = "./output_results/Sa2VA8B/"          # New: Where to save results
-MODEL_PATH = "../models/Sa2VA-8B"
+OUTPUT_DIR = "./output_results/Sa2VA_Qwen_4B/"          # New: Where to save results
+MODEL_PATH = "../models/Sa2VA-Qwen3-VL-4B"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-PROMPT = "What do you see in the image? Provide a detailed description, and assess the state of the building." 
+PROMPT = "Segment the balcony." 
 
 def test_inference():
     print(f"--- Starting Local Test ---")
@@ -37,8 +37,10 @@ def test_inference():
             MODEL_PATH, 
             trust_remote_code=True
         )
+        processor = AutoProcessor.from_pretrained(MODEL_PATH, trust_remote_code=True, use_fast=False)
         model = AutoModel.from_pretrained(
             MODEL_PATH, 
+            low_cpu_mem_usage=True,
             trust_remote_code=True, 
             torch_dtype=torch.bfloat16,
             use_flash_attn=True
@@ -57,7 +59,7 @@ def test_inference():
         'image': raw_image,
         'text': full_prompt,
         'past_text' : '',
-        'tokenizer': tokenizer,
+        'processor': processor,
         'mask_prompts': None,
     }
 
@@ -68,6 +70,8 @@ def test_inference():
         
         answer = return_dict['prediction']
         masks = return_dict['prediction_masks']
+        
+        print(f"*****{type(masks)}")
         
         print("\n--- SUCCESS ---")
         print(f"Text Answer: {answer}")
